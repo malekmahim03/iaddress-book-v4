@@ -1,0 +1,3 @@
+{"name":"mahim malek","email":"mahimmalek9@gmail.com","password":"$2a$12$3BhTkFX4g0A01q9w4LP9XuVWBKqP2WMsdvHVKQenny62CZsKNkrdu","phone":"","theme":"dark","createdAt":{"$$date":1774247006445},"_id":"IjKVnmfKgmpn4tvF"}
+{"$$indexCreated":{"fieldName":"email","unique":true,"sparse":false}}
+{"$$indexCreated":{"fieldName":"email","unique":true}}
