@@ -14,21 +14,6 @@ const cors       = require('cors');
 const Datastore  = require('nedb-promises');
 const path       = require('path');
 const fs         = require('fs');
-const twilio = require('twilio');
-
-const client = twilio(process.env.SID, process.env.TOKEN);
-async function sendWhatsApp(phone, message) {
-  try {
-    await client.messages.create({
-      from: 'whatsapp:+14155238886',
-      to: `whatsapp:${phone}`,
-      body: message
-    });
-    console.log('Message sent!');
-  } catch (err) {
-    console.error('WhatsApp Error:', err);
-  }
-}
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -648,6 +633,213 @@ app.post('/api/ai/suggest-tags', auth, async (req, res) => {
   } catch { res.json({ success: true, tags: ['contact','professional'] }); }
 });
 
+// ══════════════════════════════════════════════════════════
+// 📱 AUTO SMS BIRTHDAY SENDER — Fast2SMS (Free Indian API)
+// ══════════════════════════════════════════════════════════
+
+// HOW TO GET FREE SMS API KEY:
+// 1. Go to fast2sms.com
+// 2. Sign up free (Indian number required)
+// 3. Get 200 FREE SMS credits on signup
+// 4. Go to Dev API section → copy your API key
+// 5. Add it below:
+
+const FAST2SMS_KEY = 'A3EXwoFmUR7vL5zCcSH0GyOdTQks1hN2fZrJgjnl6uDBp9taPxyjtxi1eX20RoNOJFCQc4m5n3dhrTwP';
+
+// Send SMS using Fast2SMS (Free Indian SMS API)
+async function sendSMS(phone, message) {
+  try {
+    // Clean phone number - remove +91, spaces, dashes
+    const cleanPhone = phone.replace(/[^0-9]/g, '').slice(-10);
+    if (cleanPhone.length !== 10) {
+      console.log(`[SMS] Invalid phone: ${phone}`);
+      return { success: false, error: 'Invalid phone number' };
+    }
+
+    if (FAST2SMS_KEY === 'YOUR_FAST2SMS_KEY_HERE') {
+      console.log(`[SMS] No API key set. Would send to ${cleanPhone}: ${message}`);
+      return { success: false, error: 'API key not configured' };
+    }
+
+    const response = await fetch('https://www.fast2sms.com/dev/bulkV2', {
+      method: 'POST',
+      headers: {
+        'authorization': FAST2SMS_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+       route: 'q',
+       message: 'Happy Birthday',
+        language: 'english',
+        flash:    0,
+        numbers:  cleanPhone,
+      })
+    });
+
+    const data = await response.json();
+    console.log(`[SMS] Response for ${cleanPhone}:`, data);
+
+    if (data.return === true) {
+      console.log(`[SMS] ✅ Sent to ${cleanPhone}`);
+      return { success: true, messageId: data.request_id };
+    } else {
+      console.log(`[SMS] ❌ Failed:`, data.message);
+      return { success: false, error: data.message };
+    }
+  } catch(e) {
+    console.error('[SMS] Error:', e.message);
+    return { success: false, error: e.message };
+  }
+}
+
+// Auto Birthday SMS Sender — runs every day at 8:00 AM
+// Checks ALL users' contacts and sends birthday SMS automatically
+async function runBirthdayAutoSMS() {
+  console.log('\n[BIRTHDAY AUTO-SMS] Running birthday check...');
+  const today = new Date();
+  const mm    = String(today.getMonth() + 1).padStart(2, '0');
+  const dd    = String(today.getDate()).padStart(2, '0');
+  const md    = `${mm}-${dd}`;
+  const dateKey = today.toDateString();
+
+  try {
+    // Get ALL contacts across all users
+    const allContacts = await contactsDB.find({});
+
+    // Find today's birthdays with phone numbers
+    const todayBdays = allContacts.filter(c =>
+      c.birthday && c.birthday.slice(5) === md && c.phone
+    );
+
+    console.log(`[BIRTHDAY AUTO-SMS] Date: ${md}, Found: ${todayBdays.length} birthdays`);
+
+    let sent = 0;
+    let skipped = 0;
+
+    for (const contact of todayBdays) {
+      // Check if SMS already sent today
+      const notifKey = `sms-${dateKey}-${contact._id}`;
+      const alreadySent = await notifDB.findOne({ key: notifKey });
+
+      if (alreadySent) {
+        console.log(`[SMS] Already sent to ${contact.name} today, skipping`);
+        skipped++;
+        continue;
+      }
+
+      // Build birthday message
+      const message = `Happy Birthday ${contact.name}! Wishing you a wonderful day filled with joy and happiness! - Sent with iAddress Pro`;
+
+      // Send SMS
+      const result = await sendSMS(contact.phone, message);
+
+      // Mark as sent (even if failed, to avoid spam)
+      await notifDB.insert({
+        key:         notifKey,
+        userId:      contact.userId,
+        contactId:   contact._id,
+        contactName: contact.name,
+        phone:       contact.phone,
+        status:      result.success ? 'sent' : 'failed',
+        error:       result.error || null,
+        timestamp:   new Date()
+      });
+
+      if (result.success) {
+        sent++;
+        console.log(`[SMS] ✅ Birthday SMS sent to ${contact.name} (${contact.phone})`);
+      } else {
+        console.log(`[SMS] ❌ Failed for ${contact.name}: ${result.error}`);
+      }
+
+      // Wait 1 second between messages to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    console.log(`[BIRTHDAY AUTO-SMS] Done! Sent: ${sent}, Skipped: ${skipped}\n`);
+    return { sent, skipped, total: todayBdays.length };
+
+  } catch(e) {
+    console.error('[BIRTHDAY AUTO-SMS] Error:', e.message);
+    return { sent: 0, error: e.message };
+  }
+}
+
+// Schedule auto SMS every day at 8:00 AM
+function scheduleBirthdaySMS() {
+  const now     = new Date();
+  const next8am = new Date();
+  next8am.setHours(8, 0, 0, 0);
+
+  // If 8am already passed today, schedule for tomorrow
+  if (now >= next8am) next8am.setDate(next8am.getDate() + 1);
+
+  const msUntil8am = next8am - now;
+  console.log(`[BIRTHDAY SMS] Next auto-send scheduled at ${next8am.toLocaleString()}`);
+
+  setTimeout(async () => {
+    await runBirthdayAutoSMS();
+    // Then run every 24 hours
+    setInterval(runBirthdayAutoSMS, 24 * 60 * 60 * 1000);
+  }, msUntil8am);
+}
+
+// Start the scheduler
+scheduleBirthdaySMS();
+
+// Also run on server start (for testing)
+setTimeout(async () => {
+  console.log('[BIRTHDAY SMS] Checking for any missed birthdays today...');
+  await runBirthdayAutoSMS();
+}, 5000);
+
+// POST /api/sms/test — test SMS manually
+app.post('/api/sms/test', auth, async (req, res) => {
+  try {
+    const { phone, name } = req.body;
+    if (!phone) return res.status(400).json({ error: 'Phone number required.' });
+    const msg    = `Test from iAddress Pro! This is how your birthday messages will look: Happy Birthday ${name || 'Friend'}! Wishing you a wonderful day!`;
+    const result = await sendSMS(phone, msg);
+    if (result.success) {
+      res.json({ success: true, message: `Test SMS sent to ${phone}!` });
+    } else {
+      res.status(400).json({ error: result.error || 'SMS failed. Check your Fast2SMS API key.' });
+    }
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/sms/logs — get all sent SMS logs
+app.get('/api/sms/logs', auth, async (req, res) => {
+  try {
+    const logs = await notifDB.find({ userId: req.user.id });
+    const sorted = logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 50);
+    res.json(sorted);
+  } catch { res.status(500).json({ error: 'Failed.' }); }
+});
+
+// POST /api/sms/send-birthday — manually trigger birthday SMS to one contact
+app.post('/api/sms/send-birthday', auth, async (req, res) => {
+  try {
+    const { contactId } = req.body;
+    const contact = await contactsDB.findOne({ _id: contactId, userId: req.user.id });
+    if (!contact)        return res.status(404).json({ error: 'Contact not found.' });
+    if (!contact.phone)  return res.status(400).json({ error: 'Contact has no phone number.' });
+
+    const msg    = `Happy Birthday ${contact.name}! Wishing you a wonderful day filled with joy and happiness! - Sent with iAddress Pro`;
+    const result = await sendSMS(contact.phone, msg);
+
+    if (result.success) {
+      res.json({ success: true, message: `Birthday SMS sent to ${contact.name}!` });
+    } else {
+      res.status(400).json({ error: result.error || 'SMS send failed.' });
+    }
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── HEALTH ────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status:'ok', version:'4.0.0', ai:'Smart Built-in (No Key)', timestamp: new Date().toISOString() });
@@ -667,22 +859,3 @@ app.listen(PORT, () => {
   console.log('║  👤 New Users: Start with EMPTY contacts        ║');
   console.log('╚══════════════════════════════════════════════════╝\n');
 });
-// ✅ AUTO BIRTHDAY CHECK
-function checkAndSendBirthdayMessages() {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(5, 10); // MM-DD
-
-  contactsDB.find({}, async (err, contacts) => {
-    if (err) return;
-
-    for (let c of contacts) {
-      if (c.birthday && c.birthday.slice(5,10) === todayStr) {
-        console.log(`Sending birthday message to ${c.name}`);
-        await sendWhatsApp(c.phone, `🎉 Happy Birthday ${c.name}!`);
-      }
-    }
-  });
-}
-
-// ⏰ RUN DAILY
-setInterval(checkAndSendBirthdayMessages, 86400000);

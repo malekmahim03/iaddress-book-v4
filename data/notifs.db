@@ -1,2 +1,12 @@
-{"key":"IjKVnmfKgmpn4tvF-Wed Mar 25 2026-ytq4Jk1T441eI3vH-manual","userId":"IjKVnmfKgmpn4tvF","timestamp":{"$$date":1774418994507},"_id":"AtSW7bBjStNn1LJx"}
-{"key":"IjKVnmfKgmpn4tvF-Wed Mar 25 2026-ytq4Jk1T441eI3vH","userId":"IjKVnmfKgmpn4tvF","contactName":"aatir malek","timestamp":{"$$date":1774418981633},"_id":"iWcfSRV4701bPv4V"}
+{"key":"sms-Wed Mar 25 2026-cm26GbgBQEUSKI4D","userId":"IjKVnmfKgmpn4tvF","contactId":"cm26GbgBQEUSKI4D","contactName":"mahim","phone":"+917801921507","status":"sent","error":null,"timestamp":{"$$date":1774440758697},"_id":"6iwwbAPYq1JfELDt"}
+{"key":"bday-Wed Apr 01 2026-cm26GbgBQEUSKI4D","userId":"IjKVnmfKgmpn4tvF","contactName":"mahim","phone":"+919714372838","status":"failed","error":"Sorry, free SMS are disabled for this country due to abuse.","sentAt":{"$$date":1775024716187},"_id":"E2nJwiKE8FPZA5kr"}
+{"key":"sms-Sat Apr 04 2026-ytq4Jk1T441eI3vH","userId":"IjKVnmfKgmpn4tvF","contactId":"ytq4Jk1T441eI3vH","contactName":"aatir malek","phone":"+91 8140202136","status":"sent","error":null,"timestamp":{"$$date":1775280985445},"_id":"JF7wC7ieejICn34x"}
+{"key":"IjKVnmfKgmpn4tvF-Wed Mar 25 2026-ytq4Jk1T441eI3vH","userId":"IjKVnmfKgmpn4tvF","contactName":"aatir malek","timestamp":{"$$date":1774440393959},"_id":"NOJ8pzcSDUsozL0N"}
+{"key":"sms-Wed Apr 01 2026-cm26GbgBQEUSKI4D","userId":"IjKVnmfKgmpn4tvF","contactId":"cm26GbgBQEUSKI4D","contactName":"mahim","phone":"+919714372838","status":"sent","error":null,"timestamp":{"$$date":1775024758216},"_id":"OcjZ0F6BGjSroq6p"}
+{"key":"sms-Wed Mar 25 2026-ytq4Jk1T441eI3vH","userId":"IjKVnmfKgmpn4tvF","contactId":"ytq4Jk1T441eI3vH","contactName":"aatir malek","phone":"+91 8140202136","status":"sent","error":null,"timestamp":{"$$date":1774440194798},"_id":"Q0Sq1k1lkavUpjXi"}
+{"key":"srwGPMIVUBbZSE1m-Wed Mar 25 2026-iVMI8P5idnBwYx0l","userId":"srwGPMIVUBbZSE1m","contactName":"SHIFA","timestamp":{"$$date":1774440187765},"_id":"YtxEY8cDR34nUiA7"}
+{"key":"sms-Wed Mar 25 2026-iVMI8P5idnBwYx0l","userId":"srwGPMIVUBbZSE1m","contactId":"iVMI8P5idnBwYx0l","contactName":"SHIFA","phone":"+91 9054586828","status":"sent","error":null,"timestamp":{"$$date":1774440193564},"_id":"cjYOyXM6SrNblewo"}
+{"key":"IjKVnmfKgmpn4tvF-Wed Mar 25 2026-cm26GbgBQEUSKI4D","userId":"IjKVnmfKgmpn4tvF","contactName":"mahim","timestamp":{"$$date":1774440436969},"_id":"d8ySQskyQH5Ru1sQ"}
+{"key":"IjKVnmfKgmpn4tvF-Wed Apr 01 2026-cm26GbgBQEUSKI4D","userId":"IjKVnmfKgmpn4tvF","contactName":"mahim","timestamp":{"$$date":1775024654600},"_id":"r6XDA6Bbg03iTz9g"}
+{"key":"IjKVnmfKgmpn4tvF-Sat Apr 04 2026-ytq4Jk1T441eI3vH","userId":"IjKVnmfKgmpn4tvF","contactName":"aatir malek","timestamp":{"$$date":1775280935256},"_id":"sp6pkREI5ZpN2S7f"}
+{"key":"IjKVnmfKgmpn4tvF-Sat Apr 04 2026-ytq4Jk1T441eI3vH-manual","userId":"IjKVnmfKgmpn4tvF","timestamp":{"$$date":1775282916112},"_id":"zLgoXQWkvA8zDAUs"}
